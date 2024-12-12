@@ -1,55 +1,35 @@
-import { useEffect } from 'react'
-import './App.css'
-import { useState } from 'react'
+import { lazy, Suspense } from 'react'
 
-const NAVIGATE_EVENT = 'pushstate'
+import Page404 from './pages/404.jsx'
+import SearchPage from './pages/Search.jsx'
 
-function navigate (href){
-  window.history.pushState({}, '', href)
-  const navigationEvent = new Event(NAVIGATE_EVENT)
-  window.dispatchEvent(navigationEvent)
-}
+import { Router } from './components/Router.jsx'
+import { Route } from './components/Route.jsx'
 
-function Home(){
-  return(
-  <>
-    <h1> Home Router React Clone</h1>
-    <p>Ejemplo de creacion de React Router (clonado) </p>
-    <a href='/about'>ir a sobre nosotros </a>
-  </>
-  )
-}
+const LazyHomePage = lazy(() => import('./pages/Home.jsx'))
+const LazyAboutPage = lazy(() => import('./pages/About.jsx'))
 
-function About(){
-  return(
-  <>
-    <h1> About Router React Clone</h1>
-    <p>Saludos!!, mi nombres es Jose </p>
-    <a href='/'>Ir a Home</a>
-  </>
-  )
-}
+const appRoutes = [
+  {
+    path: '/:lang/about',
+    Component: LazyAboutPage
+  },
+  {
+    path: '/search/:query',
+    Component: SearchPage
+  }
+]
 
-function App() {  
-  const [currentPath, setCurrrentPath] = useState(window.location.pathname)
-
-  useEffect (()=>{
-    const onLocationChange = () => {
-      setCurrrentPath(window.location.pathname)
-    }
-
-    window.addEventListener(NAVIGATE_EVENT, onLocationChange)
-
-    return () => (
-      window.removeEventListener(NAVIGATE_EVENT, onLocationChange)
-    )
-  }, [])
-
+function App () {
   return (
-  <main>
-    {currentPath === '/' && <Home />}
-    {currentPath === '/about' && <About />}
-  </main>
+    <main>
+      <Suspense fallback={null}>
+        <Router routes={appRoutes} defaultComponent={Page404}>
+          <Route path='/' Component={LazyHomePage} />
+          <Route path='/about' Component={LazyAboutPage} />
+        </Router>
+      </Suspense>
+    </main>
   )
 }
 
